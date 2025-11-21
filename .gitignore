@@ -1,0 +1,14 @@
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Python / Django (Para o futuro)
+__pycache__/
+*.py[cod]
+venv/
+env/
+db.sqlite3
+.env
