@@ -1,58 +1,70 @@
 // js/services/auth.js
 
-// chave pra salvar no navegador (como se fosse o nome da tabela)
 const CHAVE_USUARIO = 'aulalivre_usuario';
+const API_BASE_URL = '/api'; // Endereço base da sua API Django (exemplo)
 
 export const authService = {
     
-    // tenta fazer login (simulado)
-    logar: (email, senha) => {
-        // MOCK: por enquanto, só aceita esse usuario fixo
-        // no futuro isso aqui vira um fetch pro django
-        if (email === 'aluno@email.com' && senha === '123456') {
-            const usuario = {
-                nome: 'Clebs Alexandre',
-                email: email,
-                tipo: 'aluno',
-                token: 'token_falso_123'
-            };
-            
-            // salva no navegador (transforma objeto em texto)
-            localStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario));
-            return { sucesso: true };
+    // Agora tenta bater na API real (vai dar erro 404 por enquanto, pq ainda não criamos a URL no Django)
+    logar: async (email, senha) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/login/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, senha })
+            });
+
+            if (response.ok) {
+                const dados = await response.json();
+                // Salva o usuário retornado pelo Django
+                localStorage.setItem(CHAVE_USUARIO, JSON.stringify(dados));
+                return { sucesso: true };
+            } else {
+                // Erro da API (ex: 401 Não Autorizado)
+                const erro = await response.json();
+                return { sucesso: false, erro: erro.detail || 'Falha no login' };
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
         }
-        
-        return { sucesso: false, erro: 'E-mail ou senha incorretos' };
     },
 
-    // funcao nova: registrar usuario (simulado)
-    registrar: (nome, email, senha, tipo) => {
-        // MOCK: cria o objeto do usuario novo na mao
-        // aqui a gente mandaria um POST pro django criar no banco de vdd
-        const novoUsuario = {
-            nome: nome,
-            email: email,
-            tipo: tipo, // 'aluno' ou 'professor'
-            token: 'token_novo_456'
-        };
+    registrar: async (nome, email, senha, tipo) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cadastro/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nome, email, senha, tipo })
+            });
 
-        // ja salva e loga direto pra facilitar a vida do usuario
-        localStorage.setItem(CHAVE_USUARIO, JSON.stringify(novoUsuario));
-        return { sucesso: true };
+            if (response.ok) {
+                const dados = await response.json();
+                localStorage.setItem(CHAVE_USUARIO, JSON.stringify(dados));
+                return { sucesso: true };
+            } else {
+                const erro = await response.json();
+                return { sucesso: false, erro: erro.detail || 'Falha no cadastro' };
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            return { sucesso: false, erro: 'Erro de conexão com o servidor.' };
+        }
     },
 
-    // apaga o usuario do navegador
     deslogar: () => {
         localStorage.removeItem(CHAVE_USUARIO);
     },
 
-    // verifica se tem alguem logado
     usuarioEstaLogado: () => {
         const usuario = localStorage.getItem(CHAVE_USUARIO);
-        return !!usuario; // retorna true se tiver texto, false se for null
+        return !!usuario;
     },
 
-    // pega os dados do usuario pra mostrar na tela
     getUsuario: () => {
         const usuario = localStorage.getItem(CHAVE_USUARIO);
         return usuario ? JSON.parse(usuario) : null;

@@ -1,50 +1,12 @@
 // js/views/explorar.js
 
-import { authService } from '../services/auth.js'; // <--- Importamos para checar o login
+import { authService } from '../services/auth.js';
 
-// lista mockada pra gente testar o front.
-const listaDeProfessores = [
-    {
-        id: 1,
-        nome: "Carlos Silva",
-        materia: "Matemática",
-        corBadge: "bg-success",
-        descricao: "Ensino álgebra e geometria básica para ensino fundamental e médio.",
-        avaliacoes: 5,
-        horarios: ["Segunda - 14:00", "Quarta - 16:00", "Sexta - 10:00"]
-    },
-    {
-        id: 2,
-        nome: "Ana Pereira",
-        materia: "Inglês",
-        corBadge: "bg-primary",
-        descricao: "Aulas de conversação e gramática para iniciantes. Método prático.",
-        avaliacoes: 4,
-        horarios: ["Terça - 19:00", "Quinta - 20:00"]
-    },
-    {
-        id: 3,
-        nome: "Roberto Campos",
-        materia: "Física",
-        corBadge: "bg-danger",
-        descricao: "Descomplicando a física mecânica e termodinâmica para vestibulandos.",
-        avaliacoes: 5,
-        horarios: ["Sábado - 09:00", "Sábado - 11:00"]
-    },
-    {
-        id: 4,
-        nome: "Júlia Costa",
-        materia: "Redação",
-        corBadge: "bg-warning text-dark",
-        descricao: "Técnicas de escrita para o ENEM e correção de textos.",
-        avaliacoes: 5,
-        horarios: ["Segunda - 18:00", "Quarta - 18:00"]
-    }
-];
+//(Pronto para integração)
+const listaDeProfessores = [];
 
 // funcao global pra abrir o modal.
 window.abrirModalAgendamento = function(id) {
-    // SEGURANÇA EXTRA: Se por algum motivo um visitante conseguir chamar essa função, barramos aqui também.
     if (!authService.usuarioEstaLogado()) {
         const modalLogin = new bootstrap.Modal(document.getElementById('modal-entrar'));
         modalLogin.show();
@@ -55,14 +17,11 @@ window.abrirModalAgendamento = function(id) {
 
     if (!professor) return;
 
-    // atualiza o titulo da modal
     document.getElementById('titulo-modal-agendamento').innerText = `Agenda de ${professor.nome}`;
 
-    // limpa os horarios antigos
     const divHorarios = document.getElementById('lista-horarios');
     divHorarios.innerHTML = ''; 
 
-    // verifica se tem horarios
     if (professor.horarios.length === 0) {
         divHorarios.innerHTML = '<p class="text-muted text-center">Sem horários livres no momento.</p>';
     } else {
@@ -71,16 +30,11 @@ window.abrirModalAgendamento = function(id) {
             botao.className = 'btn btn-outline-primary text-start mb-2';
             botao.innerHTML = `<i class="bi bi-calendar-event me-2"></i> ${horario}`;
             
-        
-            // qdo clica no horario, fecha o modal e mostra a notificação verde
             botao.onclick = () => {
-                
-                // 1. fecha o modal de agendamento suavemente
                 const modalElemento = document.getElementById('modal-agendamento');
                 const modalInstance = bootstrap.Modal.getInstance(modalElemento);
                 modalInstance.hide();
 
-                // 2. atualiza o texto da notificacao
                 const toastEl = document.getElementById('toast-sistema');
                 const toastMsg = document.getElementById('toast-mensagem');
                 const toastIcone = document.getElementById('toast-icone');
@@ -89,18 +43,14 @@ window.abrirModalAgendamento = function(id) {
                 toastIcone.className = 'bi bi-check-circle-fill me-2';
                 toastMsg.innerText = `Sucesso! Aula com ${professor.nome} agendada para ${horario}.`;
 
-                // 3. mostra o toast
                 const toastBootstrap = new bootstrap.Toast(toastEl);
                 toastBootstrap.show();
-
-                // TODO: chamar a api do back pra salvar o agendamento no banco
             };
     
             divHorarios.appendChild(botao);
         });
     }
 
-    // abre o modal na tela
     const modalElemento = document.getElementById('modal-agendamento');
     const modalBootstrap = new bootstrap.Modal(modalElemento);
     modalBootstrap.show();
@@ -109,11 +59,6 @@ window.abrirModalAgendamento = function(id) {
 // gera o html de cada card
 function criarCardProfessor(professor) {
     const estaLogado = authService.usuarioEstaLogado();
-
-    
-    // Se estiver logado: Mostra botão normal que abre a agenda
-    // Se NÃO estiver logado: Mostra botão que abre o modal de Login e muda o texto
-    
     let botaoAcao = '';
 
     if (estaLogado) {
@@ -132,36 +77,35 @@ function criarCardProfessor(professor) {
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center d-flex flex-column p-4">
-                    
                     <div class="mb-3">
                         <i class="bi bi-person-circle text-secondary" style="font-size: 3rem;"></i>
                     </div>
-
                     <h5 class="card-title fw-bold">${professor.nome}</h5>
-                    
                     <span class="badge ${professor.corBadge} mb-3 align-self-center">
                         ${professor.materia}
                     </span>
-                    
                     <p class="card-text small text-muted mb-4">
                         ${professor.descricao}
                     </p>
-                    
                     <div class="d-grid mt-auto">
                         ${botaoAcao}
                     </div>
-
                 </div>
             </div>
         </div>
     `;
 }
 
-// exporta a view pro router
 export function obterConteudoExplorar() {
-    // Como a função criarCardProfessor agora checa o login internamente, 
-    // basta chamar o map normalmente que ele já decide qual botão mostrar.
     const cardsHtml = listaDeProfessores.map(criarCardProfessor).join('');
+
+    // Se a lista estiver vazia, mostra uma mensagem amigável
+    const conteudoLista = cardsHtml || `
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-emoji-frown text-muted" style="font-size: 3rem"></i>
+            <p class="text-muted mt-3">Nenhum professor encontrado no momento.</p>
+        </div>
+    `;
 
     return `
     <div class="container py-5">
@@ -177,7 +121,7 @@ export function obterConteudoExplorar() {
         </div>
 
         <div class="row">
-            ${cardsHtml}
+            ${conteudoLista}
         </div>
     </div>
     `;

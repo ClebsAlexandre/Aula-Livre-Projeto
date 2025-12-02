@@ -2,63 +2,17 @@
 
 import { authService } from '../services/auth.js';
 
-// --- DADOS MOCKADOS (Com dados extras para simular a avaliação salva) ---
 
-const mockAulasAluno = [
-    { 
-        id: 1, 
-        professor: "Ana Pereira", 
-        materia: "Inglês", 
-        data: "Terça - 19:00", 
-        status: "Confirmada", 
-        cor: "bg-success",
-        avaliado: false 
-    },
-    { 
-        id: 2, 
-        professor: "Carlos Silva", 
-        materia: "Matemática", 
-        data: "Quarta - 16:00", 
-        status: "Pendente", 
-        cor: "bg-warning text-dark",
-        avaliado: false
-    },
-    // Aula concluída mas PENDENTE de avaliação
-    { 
-        id: 3, 
-        professor: "Roberto Campos", 
-        materia: "Física", 
-        data: "Ontem", 
-        status: "Concluído", 
-        cor: "bg-secondary", 
-        avaliado: false 
-    },
-    // Aula concluída e JÁ AVALIADA (Simulando dados salvos)
-    { 
-        id: 4, 
-        professor: "Júlia Costa", 
-        materia: "Redação", 
-        data: "Semana passada", 
-        status: "Concluído", 
-        cor: "bg-secondary", 
-        avaliado: true,
-        minhaAvaliacao: { nota: 5, comentario: "Aula excelente, adorei a didática!" }
-    }
-];
+const mockAulasAluno = []; // Lista vazia de aulas
 
-export const mockHorariosProfessor = [
-    { id: 1, dia: "Segunda", hora: "14:00", status: "Livre", aluno: "-", cor: "bg-info text-dark" },
-    { id: 2, dia: "Quarta", hora: "10:00", status: "Agendado", aluno: "Joãozinho", cor: "bg-primary" },
-    { id: 3, dia: "Sexta", hora: "18:00", status: "Concluído", aluno: "Maria", cor: "bg-success" }
-];
+export const mockHorariosProfessor = []; // Lista vazia de agenda
 
-let minhasDisciplinasMock = ["Matemática", "Física"]; 
+let minhasDisciplinasMock = []; // Lista vazia de disciplinas
 
 // --- VARIAVEIS GLOBAIS ---
 let acaoPendente = null;
 let idPendente = null;
 let modalConfirmacaoInstance = null;
-// Variável auxiliar para saber qual aula está sendo avaliada no momento
 let idAulaSendoAvaliada = null; 
 
 // --- FUNCOES AUXILIARES ---
@@ -71,7 +25,6 @@ function notificarSeguro(msg, tipo) {
     }
 }
 
-// Funções do Professor (mantidas iguais)
 window.solicitarGerenciamento = function(id, acao) {
     acaoPendente = acao;
     idPendente = id;
@@ -111,10 +64,7 @@ window.confirmarAcaoPendente = function() {
     setTimeout(() => { document.getElementById('conteudo-principal').innerHTML = obterConteudoDashboard(); }, 200);
 }
 
-// --- LÓGICA DE AVALIAÇÃO E CERTIFICADO ---
-
 window.selecionarEstrela = function(nota) { 
-    // Se o campo estiver desabilitado (modo visualização), não faz nada
     if (document.getElementById('nota-final').disabled) return;
 
     document.getElementById('nota-final').value = nota; 
@@ -131,31 +81,27 @@ window.selecionarEstrela = function(nota) {
     }); 
 }
 
-// Abre o modal para criar uma nova avaliação
 window.abrirAvaliacao = function(idAula, nomeProfessor) { 
-    idAulaSendoAvaliada = idAula; // Salva o ID pra usar no salvar
+    idAulaSendoAvaliada = idAula; 
     
-    // Reseta o form para estado "editável"
     const form = document.getElementById('form-avaliacao');
     form.reset();
     document.getElementById('nota-final').value = "0";
     document.getElementById('nota-final').disabled = false;
     
-    // Reseta estrelas
     const estrelas = document.querySelectorAll('.estrela-interativa');
     estrelas.forEach(e => {
         e.classList.remove('bi-star-fill');
         e.classList.add('bi-star');
-        e.style.cursor = 'pointer'; // volta o cursor de clique
+        e.style.cursor = 'pointer'; 
     });
 
-    // Limpa e habilita textarea e botão
     const textarea = form.querySelector('textarea');
     textarea.value = '';
     textarea.disabled = false;
     
     const btnSubmit = form.querySelector('button[type="submit"]');
-    btnSubmit.style.display = 'block'; // Mostra o botão enviar
+    btnSubmit.style.display = 'block'; 
 
     document.getElementById('nome-avaliado').innerText = nomeProfessor; 
     
@@ -164,18 +110,15 @@ window.abrirAvaliacao = function(idAula, nomeProfessor) {
     modal.show(); 
 }
 
-// Abre o modal APENAS PARA LEITURA
 window.verAvaliacao = function(idAula, nomeProfessor) {
     const aula = mockAulasAluno.find(a => a.id === idAula);
     if (!aula || !aula.minhaAvaliacao) return;
 
     const dados = aula.minhaAvaliacao;
 
-    // Preenche as estrelas visualmente
     const estrelas = document.querySelectorAll('.estrela-interativa');
     estrelas.forEach(estrela => {
         const valorEstrela = parseInt(estrela.getAttribute('data-nota'));
-        // Remove comportamento de clique visual (cursor)
         estrela.style.cursor = 'default';
         
         if (valorEstrela <= dados.nota) {
@@ -187,7 +130,6 @@ window.verAvaliacao = function(idAula, nomeProfessor) {
         }
     });
 
-    // Desabilita campos
     document.getElementById('nota-final').value = dados.nota;
     document.getElementById('nota-final').disabled = true;
 
@@ -195,7 +137,6 @@ window.verAvaliacao = function(idAula, nomeProfessor) {
     textarea.value = dados.comentario;
     textarea.disabled = true;
 
-    // Esconde o botão de enviar pois é só visualização
     const btnSubmit = document.querySelector('#form-avaliacao button[type="submit"]');
     btnSubmit.style.display = 'none';
 
@@ -206,16 +147,13 @@ window.verAvaliacao = function(idAula, nomeProfessor) {
     modal.show();
 }
 
-// Lógica simulada de salvar avaliação (deve ser chamada no router.js ou aqui se movermos o listener)
-// Para simplificar, vou exportar uma função que o router pode usar ou adicionar listener direto aqui se necessário
-// Mas como o router já tem o 'configurarAvaliacao', vamos apenas atualizar o mock
+// Mantido para não quebrar o router, mas não salva nada pois a lista é vazia
 window.salvarAvaliacaoMock = function(nota, comentario) {
     if (idAulaSendoAvaliada) {
         const aula = mockAulasAluno.find(a => a.id === idAulaSendoAvaliada);
         if (aula) {
             aula.avaliado = true;
             aula.minhaAvaliacao = { nota: parseInt(nota), comentario: comentario };
-            // Atualiza a tela
             document.getElementById('conteudo-principal').innerHTML = obterConteudoDashboard();
         }
     }
@@ -231,7 +169,7 @@ window.verCertificado = function(nomePessoa, materia) {
     modal.show(); 
 }
 
-// --- MODAIS DO PROFESSOR (MANTIDOS) ---
+// --- MODAIS DO PROFESSOR ---
 export function atualizarSelectDoModal() {
     const select = document.getElementById('horario-disciplina');
     if (!select) return;
@@ -256,6 +194,7 @@ window.abrirModalNovoHorario = function() {
 }
 
 export function adicionarHorarioMock(dados) {
+    // Adiciona na lista temporária (funciona em tempo de execução)
     mockHorariosProfessor.push({
         id: Date.now(),
         dia: dados.dia,
@@ -284,31 +223,19 @@ export function salvarDisciplinasSelecionadas() {
 
 // --- RENDERIZADORES ---
 
-// ATUALIZADO: Agora com colunas separadas para Avaliação e Certificado
 function gerarTabelaAluno() {
-    if (mockAulasAluno.length === 0) return `<tr><td colspan="5" class="text-center">Nenhuma aula.</td></tr>`;
+    if (mockAulasAluno.length === 0) return `<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma aula agendada.</td></tr>`;
     
     return mockAulasAluno.map(aula => {
         let colAvaliacao = '';
         let colCertificado = '';
 
-        // Se a aula NÃO foi concluída pelo professor
         if (aula.status !== 'Concluído') {
-            // Se tiver link (agendada), mostra o botão de entrar, senão traço
-            const botaoEntrar = `<a href="#" class="btn btn-sm btn-outline-primary fw-bold text-decoration-none" title="Entrar na Sala"><i class="bi bi-camera-video-fill me-1"></i> Acessar</a>`;
-            
-            // Lógica: Se tá pendente/agendado, mostra link. Avaliação e Certificado ficam vazios.
             colAvaliacao = '<span class="text-muted small">-</span>';
             colCertificado = '<span class="text-muted small">-</span>';
-            
-            // Sobrescreve a ação principal na coluna de status ou cria uma lógica visual
-            // (Neste layout novo, o botão de entrar pode ficar na coluna status ou numa coluna "Link")
-            // Vamos manter simples: se não concluiu, não tem o que fazer nas colunas finais.
         } 
-        // Se a aula FOI CONCLUÍDA
         else {
             if (aula.avaliado) {
-                // Já avaliou: Pode VER a avaliação (sem alterar) e BAIXAR certificado
                 colAvaliacao = `
                     <button class="btn btn-sm btn-info text-white" onclick="window.verAvaliacao(${aula.id}, '${aula.professor}')">
                         <i class="bi bi-eye-fill me-1"></i> Ver Avaliação
@@ -319,7 +246,6 @@ function gerarTabelaAluno() {
                         <i class="bi bi-award-fill me-1"></i> Certificado
                     </button>`;
             } else {
-                // Não avaliou ainda: Botão Avaliar disponível, Certificado Bloqueado
                 colAvaliacao = `
                     <button class="btn btn-sm btn-warning fw-bold" onclick="window.abrirAvaliacao(${aula.id}, '${aula.professor}')">
                         <i class="bi bi-star-fill me-1"></i> Avaliar Aula
@@ -373,7 +299,7 @@ function renderPainelAluno(usuario) {
                 <div class="card border-0 shadow-sm p-3">
                     <div class="d-flex align-items-center">
                         <div class="bg-light p-3 rounded-circle me-3 text-primary"><i class="bi bi-journal-bookmark fs-4"></i></div>
-                        <div><h6 class="mb-0 text-muted">Aulas Marcadas</h6><h3 class="fw-bold mb-0">4</h3></div>
+                        <div><h6 class="mb-0 text-muted">Aulas Marcadas</h6><h3 class="fw-bold mb-0">0</h3></div>
                     </div>
                 </div>
             </div>
@@ -381,7 +307,7 @@ function renderPainelAluno(usuario) {
                 <div class="card border-0 shadow-sm p-3">
                     <div class="d-flex align-items-center">
                         <div class="bg-light p-3 rounded-circle me-3 text-success"><i class="bi bi-clock-history fs-4"></i></div>
-                        <div><h6 class="mb-0 text-muted">Horas Estudadas</h6><h3 class="fw-bold mb-0">12h</h3></div>
+                        <div><h6 class="mb-0 text-muted">Horas Estudadas</h6><h3 class="fw-bold mb-0">0h</h3></div>
                     </div>
                 </div>
             </div>
@@ -409,9 +335,8 @@ function renderPainelAluno(usuario) {
     </div>`;
 }
 
-// --- TABELAS DO PROFESSOR (MANTIDAS IGUAIS) ---
 function gerarTabelaProfessor() {
-    if (mockHorariosProfessor.length === 0) return `<tr><td colspan="5" class="text-center">Sem horários.</td></tr>`;
+    if (mockHorariosProfessor.length === 0) return `<tr><td colspan="5" class="text-center text-muted py-3">Nenhum horário cadastrado.</td></tr>`;
     
     return mockHorariosProfessor.map(item => {
         let acoes = '';
@@ -462,8 +387,8 @@ function renderPainelProfessor(usuario) {
         </div>
 
         <div class="row mb-5">
-            <div class="col-md-4 mb-3"><div class="card border-0 shadow-sm p-3 h-100"><div class="d-flex align-items-center"><div class="bg-light p-3 rounded-circle me-3 text-warning"><i class="bi bi-people fs-4"></i></div><div><h6 class="mb-0 text-muted">Alunos</h6><h3 class="fw-bold mb-0">15</h3></div></div></div></div>
-            <div class="col-md-4 mb-3"><div class="card border-0 shadow-sm p-3 h-100"><div class="d-flex align-items-center"><div class="bg-light p-3 rounded-circle me-3 text-info"><i class="bi bi-patch-check fs-4"></i></div><div><h6 class="mb-0 text-muted">Horas</h6><h3 class="fw-bold mb-0">24h</h3></div></div></div></div>
+            <div class="col-md-4 mb-3"><div class="card border-0 shadow-sm p-3 h-100"><div class="d-flex align-items-center"><div class="bg-light p-3 rounded-circle me-3 text-warning"><i class="bi bi-people fs-4"></i></div><div><h6 class="mb-0 text-muted">Alunos</h6><h3 class="fw-bold mb-0">0</h3></div></div></div></div>
+            <div class="col-md-4 mb-3"><div class="card border-0 shadow-sm p-3 h-100"><div class="d-flex align-items-center"><div class="bg-light p-3 rounded-circle me-3 text-info"><i class="bi bi-patch-check fs-4"></i></div><div><h6 class="mb-0 text-muted">Horas</h6><h3 class="fw-bold mb-0">0h</h3></div></div></div></div>
             
             <div class="col-md-4 mb-3">
                 <div class="card border-0 shadow-sm p-3 h-100">

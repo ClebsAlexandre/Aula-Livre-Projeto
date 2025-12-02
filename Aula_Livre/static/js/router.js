@@ -70,7 +70,8 @@ window.mostrarNotificacao = function(mensagem, tipo = 'sucesso') {
         toastIcone.className = 'bi bi-exclamation-triangle-fill me-2';
     }
 
-    toastMsg.innerText = mensagem;
+    // Se a mensagem for undefined (erro de conexão), coloca um texto padrão
+    toastMsg.innerText = mensagem || "Erro de conexão/indefinido";
 
     // mostra na tela usando o bootstrap
     const toastBootstrap = new bootstrap.Toast(toastEl);
@@ -116,14 +117,16 @@ function configurarLogin() {
     const novoForm = formLogin.cloneNode(true);
     formLogin.parentNode.replaceChild(novoForm, formLogin);
 
-    novoForm.addEventListener('submit', (e) => {
+    // ADICIONADO async para esperar a resposta do servidor
+    novoForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // segura o refresh
 
         const email = document.getElementById('campo-email').value;
         const senha = document.getElementById('campo-senha').value;
 
         // chama o service pra ver se a senha bate
-        const resultado = authService.logar(email, senha);
+        // ADICIONADO await
+        const resultado = await authService.logar(email, senha);
 
         if (resultado.sucesso) {
             // fecha o modal na marra usando bootstrap
@@ -135,7 +138,9 @@ function configurarLogin() {
             atualizarNavbar();
             
             // troquei o alert pelo toast novo
-            window.mostrarNotificacao(`Bem vindo de volta, ${authService.getUsuario().nome}!`, 'sucesso');
+            // Verifica se o usuario existe antes de pegar o nome, por segurança
+            const nomeUser = authService.getUsuario() ? authService.getUsuario().nome : 'Usuário';
+            window.mostrarNotificacao(`Bem vindo de volta, ${nomeUser}!`, 'sucesso');
 
             // UX: logou, vai pra home personalizada (MUDANÇA AQUI)
             navegar('home');
@@ -155,7 +160,8 @@ function configurarCadastro() {
     const novoForm = formCadastro.cloneNode(true);
     formCadastro.parentNode.replaceChild(novoForm, formCadastro);
 
-    novoForm.addEventListener('submit', (e) => {
+    // ADICIONADO async para esperar a resposta do servidor
+    novoForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
         
         const nome = document.getElementById('cad-nome').value;
@@ -164,7 +170,8 @@ function configurarCadastro() {
         const tipo = document.getElementById('cad-tipo').value;
 
         // chama o service pra registrar
-        const resultado = authService.registrar(nome, email, senha, tipo);
+        //  await
+        const resultado = await authService.registrar(nome, email, senha, tipo);
 
         if (resultado.sucesso) {
             // fecha o modal de cadastro
@@ -175,8 +182,11 @@ function configurarCadastro() {
             atualizarNavbar();
             window.mostrarNotificacao(`Conta criada! Bem vindo, ${nome}.`, 'sucesso');
             
-            // UX: cadastro feito, vai pra home personalizada (MUDANÇA AQUI)
+            //  cadastro feito, vai pra home personalizada 
             navegar('home');
+        } else {
+             // Se der erro no cadastro (ex: email já existe), mostra aqui
+             window.mostrarNotificacao(resultado.erro, 'erro');
         }
     });
 }
