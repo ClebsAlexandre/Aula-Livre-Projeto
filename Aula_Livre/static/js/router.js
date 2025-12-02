@@ -19,7 +19,11 @@ const rotasProtegidas = ['dashboard'];
 
 // funcao q faz a SPA (troca o conteudo).
 // ta fechada aqui dentro pra ninguem conseguir chamar pelo console do navegador
-function navegar(rota) {
+// static/js/router.js
+
+// ... (código anterior mantido)
+
+async function navegar(rota) {
     
     // SEGURANCA: se tentar acessar area vip sem cracha, barra o cara
     if (rotasProtegidas.includes(rota) && !authService.usuarioEstaLogado()) {
@@ -39,8 +43,9 @@ function navegar(rota) {
     // pra nao ficar aquela tela branca feia pro usuario
     const viewRender = rotas[rota] || rotas['home'];
     
-    // injeta o html novo
-    app.innerHTML = viewRender();
+    // injeta o html novo (AGORA COM AWAIT)
+    // O await é necessário porque agora 'explorar' pode demorar um pouco buscando no banco
+    app.innerHTML = await viewRender();
     
     // ATUALIZA A URL (NOVO!): Isso faz o navegador lembrar onde vc ta (poe o # na url)
     window.location.hash = rota;
@@ -48,6 +53,8 @@ function navegar(rota) {
     // força o scroll pra cima, senao qdo troca de pagina continua lá no rodapé
     window.scrollTo(0, 0);
 }
+
+// ... (resto do código mantido)
 
 // --- FUNCOES DE UI (Interface) ---
 

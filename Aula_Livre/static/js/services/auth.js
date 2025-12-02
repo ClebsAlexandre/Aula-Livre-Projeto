@@ -1,28 +1,44 @@
 // js/services/auth.js
 
 const CHAVE_USUARIO = 'aulalivre_usuario';
-const API_BASE_URL = '/api'; // Endereço base da sua API Django (exemplo)
+const API_BASE_URL = '/api'; 
+
+// 1. A função fica aqui fora, ANTES do export
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 export const authService = {
     
-    // Agora tenta bater na API real (vai dar erro 404 por enquanto, pq ainda não criamos a URL no Django)
+    // 2. Aqui começa o objeto
     logar: async (email, senha) => {
         try {
+            // ATENÇÃO: Remova a vírgula no final desta linha abaixo se houver
             const response = await fetch(`${API_BASE_URL}/login/`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') 
                 },
                 body: JSON.stringify({ email, senha })
-            });
+            }); // <--- AQUI: Deve ser apenas ponto e vírgula (;), sem vírgula (,)
 
             if (response.ok) {
                 const dados = await response.json();
-                // Salva o usuário retornado pelo Django
                 localStorage.setItem(CHAVE_USUARIO, JSON.stringify(dados));
                 return { sucesso: true };
             } else {
-                // Erro da API (ex: 401 Não Autorizado)
                 const erro = await response.json();
                 return { sucesso: false, erro: erro.detail || 'Falha no login' };
             }
@@ -37,10 +53,11 @@ export const authService = {
             const response = await fetch(`${API_BASE_URL}/cadastro/`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({ nome, email, senha, tipo })
-            });
+            }); // Aqui também: apenas ponto e vírgula
 
             if (response.ok) {
                 const dados = await response.json();

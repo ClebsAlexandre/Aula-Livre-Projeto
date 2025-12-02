@@ -2,9 +2,6 @@
 
 import { authService } from '../services/auth.js';
 
-//(Pronto para integração)
-const listaDeProfessores = [];
-
 // funcao global pra abrir o modal.
 window.abrirModalAgendamento = function(id) {
     if (!authService.usuarioEstaLogado()) {
@@ -96,32 +93,49 @@ function criarCardProfessor(professor) {
     `;
 }
 
-export function obterConteudoExplorar() {
-    const cardsHtml = listaDeProfessores.map(criarCardProfessor).join('');
 
-    // Se a lista estiver vazia, mostra uma mensagem amigável
-    const conteudoLista = cardsHtml || `
-        <div class="col-12 text-center py-5">
-            <i class="bi bi-emoji-frown text-muted" style="font-size: 3rem"></i>
-            <p class="text-muted mt-3">Nenhum professor encontrado no momento.</p>
-        </div>
-    `;
+export async function obterConteudoExplorar() {
+    let htmlProfessores = '';
 
+    try {
+        // Busca os dados da API Django
+        const response = await fetch('/api/professores/');
+        const professores = await response.json();
+
+        if (professores.length === 0) {
+            htmlProfessores = `
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Nenhum professor encontrado.</p>
+                </div>`;
+        } else {
+            // Mapeia os dados do Django para o formato do seu HTML
+            htmlProfessores = professores.map(prof => {
+                // Adaptação: O Django retorna 'disciplinas' como lista de strings
+                const materiaPrincipal = prof.disciplinas[0] || 'Geral'; 
+                
+                // Cria um objeto temporário compatível com sua função criarCardProfessor
+                const profObj = {
+                    id: prof.id,
+                    nome: prof.nome,
+                    materia: materiaPrincipal,
+                    descricao: `Professor de ${prof.disciplinas.join(', ')}`,
+                    corBadge: 'bg-primary', // Pode customizar depois
+                    horarios: [] // A API de professor ainda não traz horários aninhados, teria que ajustar o serializer
+                };
+                return criarCardProfessor(profObj);
+            }).join('');
+        }
+    } catch (error) {
+        console.error(error);
+        htmlProfessores = '<p class="text-danger text-center">Erro ao carregar professores.</p>';
+    }
+
+    // ... Retorna o HTML final usando a variável htmlProfessores
     return `
     <div class="container py-5">
         <h2 class="mb-4 fw-bold text-primary">Professores Disponíveis</h2>
-        
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Buscar por matéria...">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-outline-primary w-100">Filtrar</button>
-            </div>
-        </div>
-
         <div class="row">
-            ${conteudoLista}
+            ${htmlProfessores}
         </div>
     </div>
     `;
