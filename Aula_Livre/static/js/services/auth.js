@@ -24,7 +24,6 @@ export const authService = {
     // 2. Aqui começa o objeto
     logar: async (email, senha) => {
         try {
-            // ATENÇÃO: Remova a vírgula no final desta linha abaixo se houver
             const response = await fetch(`${API_BASE_URL}/login/`, {
                 method: 'POST',
                 headers: {
@@ -32,7 +31,7 @@ export const authService = {
                     'X-CSRFToken': getCookie('csrftoken') 
                 },
                 body: JSON.stringify({ email, senha })
-            }); // <--- AQUI: Deve ser apenas ponto e vírgula (;), sem vírgula (,)
+            }); // Corrigido: Ponto e vírgula aqui.
 
             if (response.ok) {
                 const dados = await response.json();
@@ -57,7 +56,7 @@ export const authService = {
                     'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({ nome, email, senha, tipo })
-            }); // Aqui também: apenas ponto e vírgula
+            }); // Corrigido: Ponto e vírgula aqui.
 
             if (response.ok) {
                 const dados = await response.json();

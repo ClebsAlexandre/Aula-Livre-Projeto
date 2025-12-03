@@ -17,6 +17,11 @@ class ProfessorViewSet(viewsets.ModelViewSet):
     queryset = Professor.objects.all()
     serializer_class = ProfessorSerializer
 
+# --- ADICIONADO: ViewSet para gerenciar Disponibilidades (Horários) ---
+class DisponibilidadeViewSet(viewsets.ModelViewSet):
+    queryset = Disponibilidade.objects.all()
+    serializer_class = DisponibilidadeSerializer
+
 class AgendamentoViewSet(viewsets.ModelViewSet):
     queryset = Agendamento.objects.all()
     serializer_class = AgendamentoSerializer
@@ -95,4 +100,3 @@ def login_usuario(request):
         pass
         
     return Response({'detail': 'Credenciais inválidas.'}, status=status.HTTP_401_UNAUTHORIZED)
-
