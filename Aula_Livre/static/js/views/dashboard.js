@@ -334,7 +334,7 @@ function gerarTabelaAluno(listaAgendamentos) {
     }).join('');
 }
 
-// CORREÇÃO 1: Agora usa o ID como value, não o nome
+// CORREÇÃO: Usa ID como valor
 export async function atualizarSelectDoModal() {
     const select = document.getElementById('horario-disciplina');
     if (!select) return;
@@ -357,7 +357,7 @@ window.abrirModalNovoHorario = function() {
     new bootstrap.Modal(document.getElementById('modal-novo-horario')).show();
 }
 
-// CORREÇÃO 2: Pega o ID direto do select
+// CORREÇÃO: Passa ID direto
 export const adicionarHorario = async (dados) => {
     const usuario = authService.getUsuario();
     const disciplinaId = dados.disciplina; // ID vem direto
@@ -388,7 +388,6 @@ export const adicionarHorario = async (dados) => {
         
         document.getElementById('conteudo-principal').innerHTML = await obterConteudoDashboard();
         notificarSeguro('Horário publicado!', 'sucesso');
-        // Fecha o modal
         const modalEl = document.getElementById('modal-novo-horario');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
@@ -399,7 +398,7 @@ export const adicionarHorario = async (dados) => {
     }
 }
 
-// CORREÇÃO 3: Visual Hierárquico para o Professor (Matéria > Assunto)
+// CORREÇÃO: Professor com botão Entrar
 function gerarTabelaProfessor(dados) {
     const horariosLivres = dados.disponibilidades.filter(d => d.disponivel === true);
     const agendamentosPendentes = dados.agendamentos.filter(a => a.status === 'AGENDADO');
@@ -429,7 +428,12 @@ function gerarTabelaProfessor(dados) {
     // 2. AULAS CONFIRMADAS
     if (agendamentosConfirmados.length > 0) {
         html += `<tr class="table-success"><td colspan="4" class="fw-bold text-dark"><i class="bi bi-check-circle-fill me-2"></i> Aulas Confirmadas</td></tr>`;
-        html += agendamentosConfirmados.map(ag => `
+        html += agendamentosConfirmados.map(ag => {
+            const botaoEntrar = ag.link_aula 
+                ? `<a href="${ag.link_aula}" target="_blank" class="btn btn-sm btn-primary me-1"><i class="bi bi-camera-video-fill"></i> Entrar</a>` 
+                : '';
+
+            return `
             <tr>
                 <td>
                     <div class="fw-bold text-primary">${ag.disciplina_nome} <i class="bi bi-chevron-right small"></i> ${ag.assunto || 'Geral'}</div>
@@ -438,10 +442,12 @@ function gerarTabelaProfessor(dados) {
                 <td>${formatarDataBr(ag.data)} - ${ag.hora.slice(0,5)}</td>
                 <td><span class="badge bg-success">Confirmado</span></td>
                 <td class="text-end">
+                    ${botaoEntrar}
                     <button class="btn btn-sm btn-success me-1" onclick="window.solicitarGerenciamento(${ag.id}, 'concluir_aula')">Concluir</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="window.solicitarGerenciamento(${ag.id}, 'rejeitar_agendamento')">Cancelar</button>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
     // 3. HISTÓRICO (CONCLUÍDAS)
