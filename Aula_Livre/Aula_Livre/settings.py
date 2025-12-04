@@ -91,4 +91,16 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+<<<<<<< HEAD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+=======
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTHENTICATION_BACKENDS = [
+    'core.backends.CustomAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+>>>>>>> 43c824c (Implementação de Segurança)

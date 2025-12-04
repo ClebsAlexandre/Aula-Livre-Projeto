@@ -10,10 +10,42 @@ class Usuario(AbstractUser):
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+<<<<<<< HEAD
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'nome', 'tipo']
 
+=======
+    senha = models.CharField(max_length=128)
+
+    #Método para HASHING e armazenamento da senha
+    def set_password(self, raw_password):
+        self.senha = make_password(raw_password)
+        self.save() # Salva a instância com a senha já hashada
+
+    #Método para COMPARAÇÃO da senha
+    def check_password(self, raw_password):
+        # O 'check_password' compara a senha em texto puro com a senha com hash
+        return check_password(raw_password, self.senha)
+    
+    def __str__(self):
+        return self.nome
+
+class Aluno(models.Model):
+    nome = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    senha = models.CharField(max_length=128)
+
+    #Método para HASHING e armazenamento da senha
+    def set_password(self, raw_password):
+        self.senha = make_password(raw_password)
+        self.save()
+        
+    #Método para COMPARAÇÃO da senha
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.senha)
+    
+>>>>>>> 43c824c (Implementação de Segurança)
     def __str__(self):
         return self.nome
 

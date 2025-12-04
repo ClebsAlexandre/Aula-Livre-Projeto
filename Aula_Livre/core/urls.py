@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from core.views import (
     DisciplinaViewSet, AgendamentoViewSet, AvaliacaoViewSet, 
-    ProfessorViewSet, DisponibilidadeViewSet, login_usuario, cadastro_usuario
+    ProfessorViewSet, DisponibilidadeViewSet, AlunoViewSet, login_usuario, cadastro_usuario, logout_usuario
 )
 from django.views.generic import TemplateView
 
@@ -14,10 +14,12 @@ router.register(r'avaliacoes', AvaliacaoViewSet)
 router.register(r'professores', ProfessorViewSet)
 # REGISTRO DA NOVA ROTA
 router.register(r'disponibilidades', DisponibilidadeViewSet)
+router.register(r'alunos', AlunoViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/login/', login_usuario, name='api_login'),
     path('api/cadastro/', cadastro_usuario, name='api_cadastro'),
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('api/logout/', logout_usuario, name='logout'),
 ]
