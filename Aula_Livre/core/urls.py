@@ -18,6 +18,7 @@ router.register(r'avaliacoes', AvaliacaoViewSet)
 router.register(r'disponibilidades', DisponibilidadeViewSet)
 
 
+# Como todos usam o modelo 'Usuario', precisamos dar 'basenames' diferentes:
 router.register(r'professores', ProfessorViewSet, basename='professor')
 router.register(r'alunos', AlunoViewSet, basename='aluno')
 router.register(r'usuarios', UsuarioViewSet, basename='usuario')

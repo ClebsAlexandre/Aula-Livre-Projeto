@@ -3,15 +3,16 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 
 class Usuario(AbstractUser):
+    # Base do nosso sistema de autenticação customizada. Herdamos AbstractUser para usar o framework de segurança do Django (hashing de senha, etc.).
     TIPO_CHOICES = [
         ('ALUNO', 'Aluno'),
         ('PROFESSOR', 'Professor'),
     ]
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES) # Chave para diferenciar o comportamento do sistema (Dashboards, permissões).
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'email' # Customização: Definimos o login principal como E-mail para melhor UX.
     REQUIRED_FIELDS = ['username', 'nome', 'tipo']
 
     def __str__(self):
@@ -23,6 +24,7 @@ class Disciplina(models.Model):
     professores = models.ManyToManyField(
         Usuario, 
         related_name='disciplinas', 
+        # Restrição crucial: Apenas usuários com tipo='PROFESSOR' podem ser ligados a uma disciplina.
         limit_choices_to={'tipo': 'PROFESSOR'},
         blank=True 
     )
@@ -36,12 +38,12 @@ class Disponibilidade(models.Model):
     assunto = models.CharField(max_length=100, blank=True, null=True)
     nivel = models.CharField(max_length=50, blank=True, null=True)
     descricao = models.TextField(blank=True, null=True)
-    # O campo link já existia aqui, viu? Você que não tinha visto.
+    # Este campo é a base para a inovação da Sala Virtual Automática (Ver Agendamento.save()).
     link = models.URLField(max_length=200, blank=True, null=True)
     
     data = models.DateField()
     horario_inicio = models.TimeField()
-    disponivel = models.BooleanField(default=True)
+    disponivel = models.BooleanField(default=True) # Flag de controle de overbooking.
 
     def __str__(self):
         return f"{self.professor} - {self.data} às {self.horario_inicio}"
@@ -53,6 +55,7 @@ class Agendamento(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
+            # Fluxo de estados da aula, essencial para o Dashboard e para o gatilho de Certificado/Avaliação.
             ('AGENDADO', 'Aguardando Confirmação'), 
             ('CONFIRMADO', 'Confirmado'), 
             ('CONCLUIDO', 'Concluído'), 
@@ -62,26 +65,28 @@ class Agendamento(models.Model):
     )
 
     class Meta:
+        # Chave de integridade: Garante que um aluno só possa reservar UM agendamento por Disponibilidade específica (horário).
         unique_together = ('aluno', 'disponibilidade')
 
     def save(self, *args, **kwargs):
-        # Verifica disponibilidade ao criar novo agendamento
+        # Este método encapsula toda a lógica transacional do agendamento, agindo como um "hook" de regra de negócio.
+        
+        # Lógica de criação (executada apenas na primeira vez):
         if not self.pk: 
+            # 1. Checagem e Bloqueio Transacional: Evita a condição de corrida (overbooking).
             if not self.disponibilidade.disponivel:
                 raise ValidationError("Este horário já foi reservado por outro aluno.")
             
-            # Trava o horário
-            self.disponibilidade.disponivel = False
+            self.disponibilidade.disponivel = False # Trava o horário para agendamentos futuros.
             
-            # --- A MÁGICA DO CLEBS AQUI ---
-            # Se não tiver link, cria um link do Jitsi usando o ID da disponibilidade
+            # 2. INOVAÇÃO: Geração Dinâmica de Sala Virtual (Jitsi Meet).
+            # Se o professor não forneceu um link, criamos um link único baseado no ID da Disponibilidade.
             if not self.disponibilidade.link:
                 self.disponibilidade.link = f"https://meet.jit.si/AulaLivre-{self.disponibilidade.id}"
             
-            # Salva a disponibilidade com o link novo e travada
-            self.disponibilidade.save()
+            self.disponibilidade.save() # Persiste a trava e o link na disponibilidade.
 
-        # Libera o horário se cancelado
+        # Lógica de cancelamento: Libera o horário na Disponibilidade para que possa ser re-agendado (regra de reversão).
         if self.status == 'CANCELADO':
             self.disponibilidade.disponivel = True
             self.disponibilidade.save()
@@ -93,6 +98,7 @@ class Agendamento(models.Model):
         return f"Aula de {disc_nome} - {self.aluno} com {self.disponibilidade.professor}"
 
 class Certificado(models.Model):
+    # Modelo para o registro formal dos certificados de horas voluntárias.
     agendamento = models.OneToOneField(Agendamento, on_delete=models.CASCADE)
     codigo_validacao = models.CharField(max_length=64, unique=True)
     data_emissao = models.DateTimeField(auto_now_add=True)
@@ -102,10 +108,10 @@ class Certificado(models.Model):
         return f"Certificado {self.codigo_validacao}"
     
 class Avaliacao(models.Model):
-    # Mudamos de OneToOne para ForeignKey pro Agendamento aceitar notas dos dois lados
-    agendamento = models.ForeignKey(Agendamento, on_delete=models.CASCADE)
+    # Estrutura de avaliação mútua.
+    agendamento = models.ForeignKey(Agendamento, on_delete=models.CASCADE) # ForeignKey permite múltiplas notas (uma do aluno, uma do professor)
     
-    # Campo novo pra saber quem está dando a nota
+    # Campo chave para a avaliação mútua (controla quem avalia o quê).
     tipo_avaliador = models.CharField(
         max_length=20, 
         choices=[('ALUNO', 'Aluno'), ('PROFESSOR', 'Professor')],
@@ -119,7 +125,7 @@ class Avaliacao(models.Model):
     class Meta:
         verbose_name = "Avaliação"
         verbose_name_plural = "Avaliações"
-        # Regra pra evitar duplicidade: A mesma pessoa não pode avaliar a mesma aula 2x
+        # Garante que um tipo de avaliador (Aluno OU Professor) não avalie a mesma aula duas vezes.
         unique_together = ('agendamento', 'tipo_avaliador')
 
     def __str__(self):

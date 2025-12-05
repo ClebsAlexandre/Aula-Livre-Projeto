@@ -1,6 +1,9 @@
 // Arquivo: static/js/views/home.js
 
 export async function obterConteudoHome() {
+    // Função exportada que retorna o template HTML básico da página Home.
+    // O conteúdo é totalmente estático e depende do JavaScript (router.js)
+    // para ser dinamicamente adaptado ao tipo de usuário.
     return `
     <div class="container mt-5">
         <div class="text-center mb-5">
@@ -9,6 +12,7 @@ export async function obterConteudoHome() {
         </div>
 
         <div id="painel-visitante" class="row justify-content-center d-none">
+            <!-- Painel Padrão: Exibido para usuários não logados. O 'd-none' é removido pelo router.js se necessário. -->
             <div class="col-md-8 text-center">
                 <h3>A Ponte do Conhecimento Voluntário.</h3>
                 <p class="text-muted">Conectamos professores que querem doar conhecimento a alunos que precisam.</p>
@@ -24,6 +28,8 @@ export async function obterConteudoHome() {
         </div>
 
         <div id="painel-aluno" class="row justify-content-center d-none"> 
+            <!-- Painel do Aluno: Exibido se o usuário estiver logado como ALUNO. -->
+            <!-- Botões direcionam para as rotas chave: Explorar (match) e Dashboard (minhas aulas). -->
             <div class="col-md-5 mb-4">
                 <div class="card h-100 p-4 text-center border-0 shadow-sm hover-effect" style="cursor: pointer;" data-route="explorar">
                     <div class="card-body">
@@ -47,6 +53,8 @@ export async function obterConteudoHome() {
         </div>
 
         <div id="painel-professor" class="row justify-content-center d-none">
+            <!-- Painel do Professor: Exibido se o usuário estiver logado como PROFESSOR. -->
+            <!-- Botões direcionam para a criação de horários (modal) e o Dashboard (gerenciamento). -->
             <div class="col-md-5 mb-4">
                 <div class="card h-100 p-4 text-center border-primary shadow-sm">
                     <div class="card-body">
