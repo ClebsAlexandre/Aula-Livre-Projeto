@@ -1,9 +1,3 @@
-# Backend do AulaLivre
+# Branch com conflitos não utilizar
 
-Este diretório vai conter a API REST desenvolvida com:
-- Python
-- Django
-- Django Rest Framework (DRF)
-- Banco de Dados (SQLite/PostgreSQL)
-
-> **Status:** Em desenvolvimento (aguardando integração com o frontend).
+VÁ PARA A BRANCH IntegracaoDefinitiva
