@@ -1,0 +1,111 @@
+/* Estilos do AulaLivre */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+
+:root {
+    /* Cores oficiais */
+    --azul-principal: #004AAD;
+    --verde-destaque: #00C49F;
+    --verde-hover: #009e7d;
+    
+    /* Fontes */
+    --fonte-titulo: 'Montserrat', sans-serif;
+    --fonte-texto: 'Open Sans', sans-serif;
+}
+
+body {
+    font-family: var(--fonte-texto);
+    background-color: #fff;
+    /* Garante que o rodapé fique no chão */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Minhas Classes Customizadas --- */
+
+/* Fundo da Navbar */
+.fundo-azul-oficial {
+    background-color: var(--azul-principal) !important;
+}
+
+/* Ajuste do Logo/Texto na barra */
+.logo-texto {
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Botão Verde Chamativo */
+.botao-verde {
+    background-color: var(--verde-destaque);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.botao-verde:hover {
+    background-color: var(--verde-hover);
+    color: #fff;
+    transform: translateY(-2px); /* Pulo leve ao passar o mouse */
+}
+
+/* Link simples de rodapé ou secundário */
+.link-discreto {
+    text-decoration: none;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.link-discreto:hover {
+    color: var(--azul-principal);
+}
+
+/* --- Estilos do Certificado --- */
+
+.borda-certificado {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 5px double var(--azul-principal); /* Borda dupla chique */
+    pointer-events: none; /* Deixa clicar atraves dela */
+    z-index: 1;
+}
+
+.letter-spacing-2 {
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+}
+
+/* Esconde o resto do site qdo for imprimir o certificado */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #modal-certificado, #modal-certificado * {
+        visibility: visible;
+    }
+    #modal-certificado {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .modal-footer, .modal-header, .btn-close {
+        display: none !important; /* Esconde botoes na impressao */
+    }
+}
+
+/* --- Avaliação --- */
+.estrela-interativa {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.estrela-interativa:hover {
+    transform: scale(1.2); /* Aumenta um pouquinho pra dar feedback */
+}
