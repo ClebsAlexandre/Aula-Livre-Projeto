@@ -121,9 +121,17 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         return None
 
     def get_avaliacao(self, obj):
-        # Aninhamento Opcional: Busca e serializa a primeira avaliação encontrada.
-        # Permite exibir o status da avaliação diretamente na lista de agendamentos.
-        avaliacao = obj.avaliacao_set.first()
-        if avaliacao:
-            return AvaliacaoSerializer(avaliacao).data
+        # CORREÇÃO DO BUG DE AVALIAÇÃO MÚTUA:
+        # Busca apenas a avaliação feita pelo PRÓPRIO usuário logado (usando o contexto do request).
+        request = self.context.get('request')
+        
+        if request and request.user.is_authenticated:
+            # Se sou PROFESSOR, busco apenas avaliações com tipo_avaliador='PROFESSOR'
+            # Se sou ALUNO, busco apenas avaliações com tipo_avaliador='ALUNO'
+            # Isso garante que eu não veja a avaliação do outro como se fosse a minha.
+            minha_avaliacao = obj.avaliacao_set.filter(tipo_avaliador=request.user.tipo).first()
+            
+            if minha_avaliacao:
+                return AvaliacaoSerializer(minha_avaliacao).data
+        
         return None

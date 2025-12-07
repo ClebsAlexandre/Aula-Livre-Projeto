@@ -71,6 +71,11 @@ class AvaliacaoViewSet(viewsets.ModelViewSet):
     serializer_class = AvaliacaoSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        # Intercepta o salvamento para definir automaticamente quem está avaliando (ALUNO ou PROFESSOR)
+        # baseado no usuário logado. Isso impede que o sistema use o valor padrão 'ALUNO' incorretamente.
+        serializer.save(tipo_avaliador=self.request.user.tipo)
+
 # --- VIEWS DE AUTENTICAÇÃO E CADASTRO (Funções Decoradas) ---
 
 @api_view(['POST'])
@@ -80,6 +85,10 @@ def cadastro_usuario(request):
         
     if serializer.is_valid():
         user = serializer.save()
+        
+        # Cria a sessão imediatamente após o registro para evitar erro 403 no primeiro uso.
+        login(request, user)
+
         # Retornamos apenas os dados não sensíveis do usuário para o frontend, facilitando a gestão de estado.
         return Response({
             'id': user.id,

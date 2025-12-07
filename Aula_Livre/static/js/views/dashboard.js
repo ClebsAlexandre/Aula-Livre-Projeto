@@ -307,7 +307,7 @@ window.verCertificado = function(idAgendamento, nomePessoa, materia) {
     const btnDownload = document.querySelector('#modal-certificado .modal-footer .btn-primary');
     if (btnDownload) {
         // Usa a função de impressão do navegador para gerar o PDF/Impressão.
-        btnDownload.onclick = window.print;
+        btnDownload.onclick = () => window.print();
     }
     
     new bootstrap.Modal(document.getElementById('modal-certificado')).show(); 

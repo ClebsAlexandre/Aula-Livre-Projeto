@@ -5,7 +5,8 @@ from core.views import (
     DisciplinaViewSet, AgendamentoViewSet, AvaliacaoViewSet, 
     ProfessorViewSet, DisponibilidadeViewSet, 
     UsuarioViewSet, AlunoViewSet, 
-    login_usuario, cadastro_usuario, logout_usuario
+    login_usuario, cadastro_usuario, logout_usuario,
+    download_certificado  # <--- ADICIONADO AQUI
 )
 from django.views.generic import TemplateView
 
@@ -30,6 +31,9 @@ urlpatterns = [
     path('api/login/', login_usuario, name='api_login'),
     path('api/cadastro/', cadastro_usuario, name='api_cadastro'),
     path('api/logout/', logout_usuario, name='api_logout'),
+
+    # Certificado (Nova Rota)
+    path('api/certificado/<int:agendamento_id>/download/', download_certificado, name='api_certificado'),
     
     # Frontend
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
