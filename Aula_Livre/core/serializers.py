@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password # Importação essencial para validar a senha
 from .models import Disciplina, Agendamento, Avaliacao, Usuario, Disponibilidade
 
 class DisciplinaSerializer(serializers.ModelSerializer):
@@ -22,8 +23,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
     disciplinas = serializers.StringRelatedField(many=True, read_only=True)
     disponibilidades = DisponibilidadeSerializer(source='disponibilidade_set', many=True, read_only=True)
     
-    # REGRA DE SEGURANÇA CRÍTICA: 'write_only=True' garante que a senha seja enviada, mas NUNCA retornada na resposta da API.
-    senha = serializers.CharField(write_only=True)
+    # REGRA DE SEGURANÇA CRÍTICA: 
+    # 1. 'write_only=True' garante que a senha seja enviada, mas NUNCA retornada na resposta da API.
+    # 2. 'validators=[validate_password]' ativa as regras do settings.py (comprimento mínimo, etc).
+    senha = serializers.CharField(write_only=True, validators=[validate_password])
 
     class Meta:
         model = Usuario

@@ -1,11 +1,9 @@
 // js/services/auth.js
 
-const CHAVE_USUARIO = 'aulalivre_usuario'; // Chave de armazenamento local para persistência do estado do usuário.
-const API_BASE_URL = '/api'; // Ponto de entrada padrão para todas as chamadas do Django REST Framework.
+const CHAVE_USUARIO = 'aulalivre_usuario'; // Chave de armazenamento local.
+const API_BASE_URL = '/api'; // Ponto de entrada da API.
 
 function getCookie(name) {
-    // Função auxiliar fundamental para extrair o token CSRF do cookie.
-    // O token é obrigatório para todas as requisições POST seguras no Django.
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -28,18 +26,16 @@ export const authService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken') // Inclusão obrigatória do token de segurança.
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({ email, senha })
             });
 
             if (response.ok) {
                 const dados = await response.json();
-                // Persistência: Guarda os dados não sensíveis do usuário no navegador (localStorage).
                 localStorage.setItem(CHAVE_USUARIO, JSON.stringify(dados));
                 return { sucesso: true };
             } else {
-                // Tratamento de erro detalhado vindo do backend (Django).
                 const erro = await response.json();
                 return { sucesso: false, erro: erro.detail || 'Falha no login' };
             }
@@ -57,7 +53,6 @@ export const authService = {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                // Regra de Coerência: Garante que o tipo (ALUNO/PROFESSOR) seja enviado em maiúsculo para bater com o modelo do Django.
                 body: JSON.stringify({ 
                     nome, 
                     email, 
@@ -68,12 +63,27 @@ export const authService = {
 
             if (response.ok) {
                 const dados = await response.json();
-                // Após o registro, o usuário já é autenticado e seu estado é salvo no localStorage.
                 localStorage.setItem(CHAVE_USUARIO, JSON.stringify(dados));
                 return { sucesso: true };
             } else {
+                // O Django retorna erros de campo como: { "senha": ["Senha muito curta"] }
                 const erro = await response.json();
-                return { sucesso: false, erro: erro.detail || 'Falha no cadastro' };
+                
+                let mensagem = 'Falha no cadastro';
+                
+                if (erro.detail) {
+                    mensagem = erro.detail;
+                } else if (erro.senha) {
+                    mensagem = `Senha: ${erro.senha[0]}`; // Pega a primeira msg de erro da senha
+                } else if (erro.email) {
+                    mensagem = `E-mail: ${erro.email[0]}`;
+                } else {
+                    // Se for outro erro, tenta pegar o primeiro valor que encontrar
+                    const primeiraChave = Object.keys(erro)[0];
+                    if(primeiraChave) mensagem = `${erro[primeiraChave][0]}`;
+                }
+
+                return { sucesso: false, erro: mensagem };
             }
         } catch (error) {
             console.error("Erro na requisição:", error);
@@ -82,18 +92,15 @@ export const authService = {
     },
 
     deslogar: () => {
-        // Limpa o estado local do usuário. O evento de logout no Django é disparado separadamente (ver router.js).
         localStorage.removeItem(CHAVE_USUARIO);
     },
 
     usuarioEstaLogado: () => {
-        // Checagem simples de estado baseada na existência da chave no localStorage.
         const usuario = localStorage.getItem(CHAVE_USUARIO);
         return !!usuario;
     },
 
     getUsuario: () => {
-        // Recupera os dados do usuário, usados para personalizar a interface (nome, tipo de perfil).
         const usuario = localStorage.getItem(CHAVE_USUARIO);
         return usuario ? JSON.parse(usuario) : null;
     }
