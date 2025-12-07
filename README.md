@@ -64,7 +64,9 @@ O sistema depende da existência de disciplinas no banco de dados para que profe
     ```bash
     python manage.py createsuperuser
     ```
-    *Guarde o e-mail e a senha, pois este será seu primeiro login.*
+    > **Atenção:** Quando o terminal solicitar o campo **tipo**, digite `PROFESSOR` ou `ALUNO` em **MAIÚSCULAS**. O terminal é *case-sensitive* e não aceitará "professor" (minúsculo).
+    >
+    > *Guarde o e-mail e a senha, pois este será seu primeiro login.*
 
 2.  **Populando Disciplinas:**
     * Inicie o servidor localmente: `python manage.py runserver`
